@@ -731,3 +731,23 @@ footer {
   font-size: 0.75rem;
   color: var(--text-muted);
 }
+
+/* Telegram 'Chat with Agent' Premium Navigation Button styling */
+.header-telegram-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  border: 1px solid var(--accent-gold);
+  padding: 6px 14px;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  transition: var(--transition-fast);
+  color: var(--accent-gold);
+}
+
+.header-telegram-btn:hover {
+  background-color: var(--accent-gold);
+  color: var(--bg-dark) !important;
+  border-color: var(--accent-gold);
+}
