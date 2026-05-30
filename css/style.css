@@ -751,3 +751,104 @@ footer {
   color: var(--bg-dark) !important;
   border-color: var(--accent-gold);
 }
+
+/* ==========================================================================
+   RESPONSIVE LAYOUT & MOBILE OPTIMIZATIONS
+   ========================================================================== */
+@media (max-width: 992px) {
+  /* Sweeping Grid Reset to prevent column overflows */
+  .editorial-row > * {
+    grid-column: auto !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  
+  /* Hero Stacking Proportion */
+  .hero-editorial {
+    height: auto !important;
+    min-height: auto !important;
+    padding: 140px 0 4rem 0 !important;
+  }
+  
+  .hero-image-block {
+    height: 45vh !important;
+    margin-top: 2.5rem;
+  }
+  
+  /* Materiality Grid Borders Stack Fix */
+  .materiality-col {
+    border-right: none !important;
+    border-bottom: var(--border-light-line);
+  }
+  .theme-dark .materiality-col {
+    border-right: none !important;
+    border-bottom: var(--border-dark-line);
+  }
+  .materiality-col:last-child {
+    border-bottom: none;
+  }
+  
+  /* General Spacing */
+  section {
+    padding: 5rem 0 !important;
+  }
+  
+  .inquiry-grid {
+    grid-template-columns: 1fr !important;
+    gap: 3rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Solid Mobile Header Drawer drop-down */
+  header {
+    background-color: transparent;
+    transition: var(--transition-fast);
+  }
+  
+  header.nav-active {
+    background-color: var(--bg-dark);
+    border-bottom: var(--border-dark-line);
+  }
+  
+  header.nav-active nav {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: var(--bg-dark);
+    border-bottom: var(--border-dark-line);
+    padding: 2.5rem 2rem;
+    gap: 1.8rem;
+    z-index: 99;
+  }
+  
+  /* Beautifully Animated Menu Toggle Hamburger to X cross icon */
+  .menu-toggle span {
+    transition: var(--transition-fast);
+  }
+  
+  header.nav-active .menu-toggle span:nth-child(1) {
+    transform: translateY(4px) rotate(45deg);
+  }
+  
+  header.nav-active .menu-toggle span:nth-child(2) {
+    transform: translateY(-4px) rotate(-45deg);
+  }
+  
+  /* Font Size Tweaks for perfect mobile reading */
+  h1, .hero-title-overlap {
+    font-size: clamp(2.4rem, 9vw, 3.5rem) !important;
+    line-height: 1.1 !important;
+  }
+  
+  h2 {
+    font-size: clamp(1.8rem, 8vw, 2.5rem) !important;
+  }
+  
+  .about-desc-card {
+    padding: 2rem !important;
+  }
+}
