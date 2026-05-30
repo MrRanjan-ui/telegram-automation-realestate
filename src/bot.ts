@@ -508,8 +508,56 @@ export function setupBot(bot: Telegraf<any>) {
     }
 
     // 4. AI Advisory/Interactive Query Parsing (Default / Idle mode)
-    // If user is in AI Advisory mode OR if it's natural chat query
     if (session.step === 'AI_MODE' || session.step === 'IDLE') {
+      const lowerText = text.toLowerCase();
+
+      // Check for common greetings
+      const isGreeting = ['hi', 'hello', 'hey', 'hello bot', 'hola', 'namaste', 'helo', 'hrloo', 'kaisa hai', 'kya haal hai'].includes(lowerText) ||
+        lowerText.startsWith('hi ') || lowerText.startsWith('hello ') || lowerText.startsWith('hey ');
+
+      // Check for broad availability questions
+      const isAvailabilityQuery = lowerText.includes('kaha kaha') || 
+        lowerText.includes('kahan kahan') ||
+        lowerText.includes('available') || 
+        lowerText.includes('kaun kaun se') ||
+        lowerText.includes('location') ||
+        lowerText.includes('shehar') ||
+        lowerText.includes('city') ||
+        lowerText.includes('properties');
+
+      if (isGreeting) {
+        await humanReplyWithMarkdown(
+          ctx,
+          `Hey! 👋 Welcome back to Aarna Estates.\n\n` +
+          `Main aapka personal human-like assistant hoon. Main aapke liye property search karne ya investment suggestions dene me help kar sakta hoon. 😊\n\n` +
+          `Aap niche diye buttons se search start kar sakte hain, ya phir direct apna requirement batayein (Jaise: *"Patna me 3 BHK flat chahiye"*):`,
+          Markup.inlineKeyboard([
+            [
+              Markup.button.callback('Property Buy karni hai 🔑', 'action_buy'),
+              Markup.button.callback('Rent par chahiye 🏠', 'action_rent'),
+            ],
+            [
+              Markup.button.callback('Sell karni hai 🏷️', 'action_sell'),
+              Markup.button.callback('AI Advisor se pucho 🤖', 'action_ai_advisor'),
+            ],
+          ])
+        );
+        return;
+      }
+
+      if (isAvailabilityQuery && !lowerText.includes('bhk') && !lowerText.includes('flat') && !lowerText.includes('villa') && !lowerText.includes('lakh')) {
+        await humanReplyWithMarkdown(
+          ctx,
+          `Humare paas **Patna, Delhi, Mumbai aur Bangalore** ke prime areas me multiple flats, luxury villas, commercial showrooms aur plots available hain! 📍🏢\n\n` +
+          `Aap inme se kis city me properties dekhna chahte hain? Please niche diye options me se ek select kijiye taaki hum customized list generate kar sakein:`,
+          Markup.inlineKeyboard([
+            [Markup.button.callback('Patna 📍', 'city_Patna'), Markup.button.callback('Delhi 📍', 'city_Delhi')],
+            [Markup.button.callback('Mumbai 📍', 'city_Mumbai'), Markup.button.callback('Bangalore 📍', 'city_Bangalore')],
+          ])
+        );
+        return;
+      }
+
       const isQuestion = text.includes('?') || 
         text.toLowerCase().includes('how') || 
         text.toLowerCase().includes('why') || 
