@@ -48,15 +48,30 @@ async function startBot() {
     console.error(`[Telegraf Error] encountered error for ${ctx.updateType}:`, err);
   });
 
-  // Start polling
-  bot.launch()
-    .then(() => {
-      console.log('🚀 Aarna Estates AI Telegram Bot is fully online and polling!');
-    })
-    .catch((err) => {
-      console.error('[Bot Launch Failed]', err);
-      process.exit(1);
-    });
+  // Start polling with automatic retries for zero-downtime rolling deploy conflict handling
+  async function launchWithRetry(retries = 5, delayMs = 6000) {
+    for (let i = 0; i < retries; i++) {
+      try {
+        await bot.launch({
+          allowedUpdates: [],
+          dropPendingUpdates: true
+        });
+        console.log('🚀 Aarna Estates AI Telegram Bot is fully online and polling!');
+        return;
+      } catch (err: any) {
+        console.error(`[Bot Launch Attempt ${i + 1} Failed]:`, err.message || err);
+        if (i < retries - 1) {
+          console.log(`Retrying bot launch in ${delayMs / 1000}s...`);
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+        } else {
+          console.error('[Bot Launch Failed] Max retries reached.');
+          process.exit(1);
+        }
+      }
+    }
+  }
+
+  launchWithRetry();
 
   // Enable graceful stop
   const shutdown = async (signal: string) => {
