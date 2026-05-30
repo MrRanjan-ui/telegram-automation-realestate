@@ -1,0 +1,31 @@
+{
+  "name": "telegramautomation-for-realestate",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "simulate": "ts-node src/simulator.ts",
+    "db:migrate": "prisma migrate dev --name init",
+    "db:seed": "ts-node prisma/seed.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@google/genai": "^2.7.0",
+    "@prisma/client": "^5.18.0",
+    "@types/pdfkit": "^0.17.6",
+    "dotenv": "^17.4.2",
+    "mongodb": "^7.2.0",
+    "pdfkit": "^0.18.0",
+    "telegraf": "^4.16.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "prisma": "^5.18.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
+  }
+}

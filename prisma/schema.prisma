@@ -1,0 +1,66 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Lead {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  telegramId   String   @unique
+  name         String?
+  phone        String?
+  city         String?
+  budgetMin    Int?      // in Lakhs
+  budgetMax    Int?      // in Lakhs
+  propertyType String?   // Flat, Villa, Plot, Commercial
+  timeline     String?   // IMMEDIATE, ONE_MONTH, THREE_MONTHS, RESEARCHING
+  score        Int      @default(0)
+  status       String   @default("NEW") // NEW, CONTACTED, VISIT_SCHEDULED, etc.
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  visits       Visit[]
+}
+
+model Property {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  location    String
+  city        String
+  price       Int      // in Lakhs
+  type        String   // Flat, Villa, Plot, Commercial
+  bhk         Int?     // 1, 2, 3, etc.
+  areaSqFt    Int
+  description String
+  photos       String[] // Native string array in MongoDB!
+  brochureUrl  String?  // PDF URL
+  amenities    String[] // Native string array
+  developer    String   @default("Aarna Estates")
+  floorPlan    String?
+  nearbyPlaces String[] // Native string array
+  latitude     Float?
+  longitude    Float?
+  createdAt    DateTime @default(now())
+  visits      Visit[]
+}
+
+model Visit {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  leadId      String   @db.ObjectId
+  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  propertyId  String   @db.ObjectId
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  visitDate   DateTime
+  status      String   @default("SCHEDULED") // SCHEDULED, COMPLETED, CANCELLED
+  createdAt   DateTime @default(now())
+}
+
+model Agent {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  phone          String
+  telegramChatId String   @unique // For sending direct notification alerts
+  isActive       Boolean  @default(true)
+}
