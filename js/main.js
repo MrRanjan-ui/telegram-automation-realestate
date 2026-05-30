@@ -37,6 +37,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // Trigger initial reveal check
   setTimeout(handleScrollAnimation, 300);
 
+  // Initialize mobile menu toggle
+  const menuToggle = document.querySelector('.menu-toggle');
+  const header = document.querySelector('header');
+  if (menuToggle && header) {
+    menuToggle.addEventListener('click', () => {
+      header.classList.toggle('nav-active');
+    });
+  }
+
   // Initialize Showcase Carousel / Slider (index.html)
   initHeroSlider();
 
