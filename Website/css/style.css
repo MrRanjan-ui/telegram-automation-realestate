@@ -226,6 +226,19 @@ header nav {
   header nav {
     display: none; /* Can be toggled on mobile */
   }
+  header.nav-active nav {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: var(--bg-dark);
+    border-bottom: var(--border-dark-line);
+    padding: 2rem 1.5rem;
+    gap: 1.5rem;
+    z-index: 99;
+  }
 }
 
 header nav a {
