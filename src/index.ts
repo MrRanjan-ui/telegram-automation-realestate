@@ -2,8 +2,19 @@ import { Telegraf } from 'telegraf';
 import { setupBot } from './bot';
 import { disconnectDb } from './db';
 import * as dotenv from 'dotenv';
+import * as http from 'http';
 
 dotenv.config();
+
+// Simple HTTP health-check server to satisfy Render's Web Service port binding requirement
+const PORT = process.env.PORT || 10000;
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  res.end('Aarna Estates Telegram Bot is live and healthy!');
+});
+server.listen(Number(PORT), '0.0.0.0', () => {
+  console.log(`[Health Check] Server is listening on port ${PORT} to satisfy Render port-binding.`);
+});
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const isTokenPlaceholder = !TOKEN || TOKEN === 'YOUR_TELEGRAM_BOT_TOKEN' || TOKEN === '';
@@ -51,6 +62,7 @@ async function startBot() {
   const shutdown = async (signal: string) => {
     console.log(`\n[Shutdown] Received ${signal}. Shutting down gracefully...`);
     bot.stop(signal);
+    server.close();
     await disconnectDb();
     console.log('[Shutdown] Disconnected database. Goodbye!');
     process.exit(0);
