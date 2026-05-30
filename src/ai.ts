@@ -37,37 +37,42 @@ function heuristicParse(text: string): ParsedQuery {
     budgetMax: null,
   };
 
-  // 1. Detect City
-  if (query.includes('patna')) result.city = 'Patna';
-  else if (query.includes('delhi')) result.city = 'Delhi';
-  else if (query.includes('mumbai')) result.city = 'Mumbai';
-  else if (query.includes('bangalore') || query.includes('bengaluru')) result.city = 'Bangalore';
+  // 1. Detect City with variations (Delhi NCR, Bombay, Bengaluru, BLR)
+  if (query.includes('patna')) {
+    result.city = 'Patna';
+  } else if (query.includes('delhi') || query.includes('ncr')) {
+    result.city = 'Delhi';
+  } else if (query.includes('mumbai') || query.includes('bombay')) {
+    result.city = 'Mumbai';
+  } else if (query.includes('bangalore') || query.includes('bengaluru') || query.includes('blr')) {
+    result.city = 'Bangalore';
+  }
 
-  // 2. Detect Property Type
-  if (query.includes('flat') || query.includes('apartment') || query.includes('bhk') || query.includes('flats')) {
+  // 2. Detect Property Type with expanded real estate terminology
+  if (query.includes('flat') || query.includes('apartment') || query.includes('bhk') || query.includes('flats') || query.includes('studio') || query.includes('penthouse') || query.includes('room')) {
     result.propertyType = 'Flat';
-  } else if (query.includes('villa') || query.includes('house') || query.includes('duplex') || query.includes('bungalow')) {
+  } else if (query.includes('villa') || query.includes('house') || query.includes('duplex') || query.includes('bungalow') || query.includes('kothi') || query.includes('rowhouse') || query.includes('farmhouse')) {
     result.propertyType = 'Villa';
-  } else if (query.includes('plot') || query.includes('land') || query.includes('zameen')) {
+  } else if (query.includes('plot') || query.includes('land') || query.includes('zameen') || query.includes('plots') || query.includes('meadow') || query.includes('meadows')) {
     result.propertyType = 'Plot';
-  } else if (query.includes('commercial') || query.includes('shop') || query.includes('showroom') || query.includes('office')) {
+  } else if (query.includes('commercial') || query.includes('shop') || query.includes('showroom') || query.includes('office') || query.includes('retail') || query.includes('warehouse')) {
     result.propertyType = 'Commercial';
   }
 
-  // 3. Detect BHK
-  const bhkMatch = query.match(/(\d)\s*(?:bhk|bedroom)/i);
+  // 3. Detect BHK with standard spacing
+  const bhkMatch = query.match(/(\d)\s*(?:bhk|bedroom|bed room|b\/h\/k)/i);
   if (bhkMatch) {
     result.bhk = parseInt(bhkMatch[1], 10);
   }
 
-  // 4. Detect Budget (e.g. 50 lakh, 1 cr, 70l, 2 crore)
-  const lakhMatch = query.match(/(\d+)\s*(?:lakh|l|lakhs)/i);
+  // 4. Detect Budget supporting decimals (e.g. 85.5 lakhs, 1.2 cr, 75L)
+  const lakhMatch = query.match(/(\d+(?:\.\d+)?)\s*(?:lakh|l|lakhs)/i);
   const crMatch = query.match(/(\d+(?:\.\d+)?)\s*(?:cr|crore|crores)/i);
 
   if (crMatch) {
     result.budgetMax = Math.round(parseFloat(crMatch[1]) * 100); // 1.5 Cr -> 150 Lakhs
   } else if (lakhMatch) {
-    result.budgetMax = parseInt(lakhMatch[1], 10);
+    result.budgetMax = Math.round(parseFloat(lakhMatch[1]));
   }
 
   return result;
