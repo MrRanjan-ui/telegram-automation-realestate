@@ -49,6 +49,42 @@ export function resetSession(userId: string): UserSession {
 }
 
 /**
+ * Helper function to simulate human-like typing delay and send message
+ */
+async function humanReply(ctx: any, text: string, extra?: any) {
+  try {
+    await ctx.sendChatAction('typing');
+    const delay = Math.min(1200, Math.max(600, text.length * 4));
+    await new Promise(resolve => setTimeout(resolve, delay));
+    if (extra) {
+      return await ctx.reply(text, extra);
+    }
+    return await ctx.reply(text);
+  } catch (err) {
+    if (extra) {
+      return await ctx.reply(text, extra);
+    }
+    return await ctx.reply(text);
+  }
+}
+
+/**
+ * Helper function to simulate human-like typing delay and send Markdown message
+ */
+async function humanReplyWithMarkdown(ctx: any, text: string, extra?: any) {
+  try {
+    await ctx.sendChatAction('typing');
+    const delay = Math.min(1200, Math.max(600, text.length * 4));
+    await new Promise(resolve => setTimeout(resolve, delay));
+    const options = { parse_mode: 'Markdown' as const, ...extra };
+    return await ctx.replyWithMarkdown(text, options);
+  } catch (err) {
+    const options = { parse_mode: 'Markdown' as const, ...extra };
+    return await ctx.replyWithMarkdown(text, options);
+  }
+}
+
+/**
  * Lead Scoring Function
  * Computes a qualification score out of 100
  */
@@ -154,22 +190,25 @@ export function setupBot(bot: Telegraf<any>) {
     const userId = String(ctx.from?.id);
     resetSession(userId);
 
-    const welcomeMsg = `🏢 **Welcome to Aarna Estates AI Assistant!** 🏢\n\n` +
-      `Aapki dream property dhoondhne me hum aapki help karenge. ` +
-      `Aap niche diye buttons se search kar sakte hain, ya direct likh sakte hain, jaise:\n` +
-      `*"Mujhe Patna me 3 BHK flat chahiye budget 80L"* 🤖✨\n\n` +
+    await ctx.sendChatAction('typing');
+    await new Promise(resolve => setTimeout(resolve, 600));
+
+    const welcomeMsg = `Hey there! 👋 **Aarna Estates** me aapka swagat hai!\n\n` +
+      `Main aapka personal real estate companion hoon. Aapki family ke liye perfect flat, villa ya zameen dhoondhne me main poori help karunga. 😊\n\n` +
+      `Aap niche diye buttons se search start kar sakte hain, ya phir direct apna requirement type karke mujhe batayein, jaise:\n` +
+      `*"Mujhe Patna me ek accha 3 BHK flat chahiye under 80L"* 🏢✨\n\n` +
       `Aap kya dhoondh rahe hain?`;
 
     await ctx.replyWithMarkdown(
       welcomeMsg,
       Markup.inlineKeyboard([
         [
-          Markup.button.callback('Buy Property 🔑', 'action_buy'),
-          Markup.button.callback('Rent Property 🏠', 'action_rent'),
+          Markup.button.callback('Property Buy karni hai 🔑', 'action_buy'),
+          Markup.button.callback('Rent par chahiye 🏠', 'action_rent'),
         ],
         [
-          Markup.button.callback('Sell Property 🏷️', 'action_sell'),
-          Markup.button.callback('Ask AI Advisor 🤖', 'action_ai_advisor'),
+          Markup.button.callback('Sell karni hai 🏷️', 'action_sell'),
+          Markup.button.callback('AI Advisor se pucho 🤖', 'action_ai_advisor'),
         ],
       ])
     );
@@ -183,9 +222,10 @@ export function setupBot(bot: Telegraf<any>) {
     session.step = 'WIZARD_CITY';
 
     await ctx.answerCbQuery();
-    await ctx.reply('👉 *Selected: Buy Property 🔑*', { parse_mode: 'Markdown' });
-    await ctx.reply(
-      'Great! Kis City me aap property search kar rahe hain?',
+    await humanReplyWithMarkdown(ctx, `Sahi choice! 👍 Hamare paas prime locations me bahut hi premium listings hain.`);
+    await humanReply(
+      ctx,
+      'Aap kis city me property search kar rahe hain?',
       Markup.inlineKeyboard([
         [Markup.button.callback('Patna 📍', 'city_Patna'), Markup.button.callback('Delhi 📍', 'city_Delhi')],
         [Markup.button.callback('Mumbai 📍', 'city_Mumbai'), Markup.button.callback('Bangalore 📍', 'city_Bangalore')],
@@ -200,9 +240,10 @@ export function setupBot(bot: Telegraf<any>) {
     session.step = 'WIZARD_CITY';
 
     await ctx.answerCbQuery();
-    await ctx.reply('👉 *Selected: Rent Property 🏠*', { parse_mode: 'Markdown' });
-    await ctx.reply(
-      'Aap kis City me property Rent par lena chahte hain?',
+    await humanReplyWithMarkdown(ctx, `Accha decision! 👍 Rent ke liye hamare paas fully functional aur highly connected properties hain.`);
+    await humanReply(
+      ctx,
+      'Aap kis city me property Rent par lena chahte hain?',
       Markup.inlineKeyboard([
         [Markup.button.callback('Patna 📍', 'city_Patna'), Markup.button.callback('Delhi 📍', 'city_Delhi')],
         [Markup.button.callback('Mumbai 📍', 'city_Mumbai'), Markup.button.callback('Bangalore 📍', 'city_Bangalore')],
@@ -217,8 +258,8 @@ export function setupBot(bot: Telegraf<any>) {
     session.step = 'WIZARD_NAME';
 
     await ctx.answerCbQuery();
-    await ctx.reply('👉 *Selected: Sell Property 🏷️*', { parse_mode: 'Markdown' });
-    await ctx.reply('Zaroor! Aapki property sell karne me hum help karenge. Please apna Full Name batayein:');
+    await humanReplyWithMarkdown(ctx, `Zaroor! Hamare paas verification completed buyers ka ek bada network hai, jo aapki property ke liye bilkul ideal hai. 😊`);
+    await humanReply(ctx, 'Sabse pehle, please mujhe apna Full Name batayein:');
   });
 
   bot.action('action_ai_advisor', async (ctx) => {
@@ -227,14 +268,13 @@ export function setupBot(bot: Telegraf<any>) {
     session.step = 'AI_MODE';
 
     await ctx.answerCbQuery();
-    await ctx.reply('👉 *Selected: Ask AI Advisor 🤖*', { parse_mode: 'Markdown' });
-    await ctx.reply(
-      '🤖 **AI Real Estate Advisor Active** 🤖\n\n' +
-        'Aap real estate investment ke baare me koi bhi sawaal puch sakte hain, jaise:\n' +
-        '- *"Patna me investment ke liye best areas kaun se hain?"*\n' +
-        '- *"Bihta me future growth potential kya hai?"*\n' +
-        '- *"What is the average ROI in Danapur?"*\n\n' +
-        'Puchhiye apna sawaal:'
+    await humanReply(
+      ctx,
+      `🤖 **AI Real Estate Advisor Active** 🤖\n\n` +
+        `Aap mujhse investments, expected ROI, growth corridors ya best sectors ke baare me kuch bhi puch sakte hain, jaise:\n` +
+        `- "Patna me investment ke liye best areas kaun se hain?"\n` +
+        `- "Bihta me future expansion ka kya scene hai?"\n\n` +
+        `Puchhiye, kya sawaal hai aapka?`
     );
   });
 
@@ -247,9 +287,10 @@ export function setupBot(bot: Telegraf<any>) {
     session.step = 'WIZARD_BUDGET';
 
     await ctx.answerCbQuery();
-    await ctx.reply(`👉 *Selected City: ${city} 📍*`, { parse_mode: 'Markdown' });
-    await ctx.reply(
-      `Aapka Price Budget kya hai?`,
+    await humanReplyWithMarkdown(ctx, `Ah, ${city}! 📍 Wahan toh real estate market kaafi tezi se growth kar raha hai.`);
+    await humanReply(
+      ctx,
+      `Aapne is deal ke liye kitna approx budget plan kiya hai?`,
       Markup.inlineKeyboard([
         [
           Markup.button.callback('20 Lakhs - 50 Lakhs', 'budget_20_50'),
@@ -273,16 +314,11 @@ export function setupBot(bot: Telegraf<any>) {
     session.budgetMax = max;
     session.step = 'WIZARD_TYPE';
 
-    let budgetText = '';
-    if (max === 9999) budgetText = '2 Crore+';
-    else if (max === 100) budgetText = '50 Lakhs - 1 Crore';
-    else if (max === 200) budgetText = '1 Crore - 2 Crore';
-    else budgetText = '20 Lakhs - 50 Lakhs';
-
     await ctx.answerCbQuery();
-    await ctx.reply(`👉 *Selected Budget: ${budgetText} 💰*`, { parse_mode: 'Markdown' });
-    await ctx.reply(
-      'Aapko kis type ki property chahiye?',
+    await humanReplyWithMarkdown(ctx, `Perfect budget! 👍 Is price point me kaafi high-quality options milenge.`);
+    await humanReply(
+      ctx,
+      'Aap kis type ki property search kar rahe hain?',
       Markup.inlineKeyboard([
         [
           Markup.button.callback('Flat 🏢', 'type_Flat'),
@@ -305,16 +341,17 @@ export function setupBot(bot: Telegraf<any>) {
     session.step = 'WIZARD_TIMELINE';
 
     await ctx.answerCbQuery();
-    await ctx.reply(`👉 *Selected Property Type: ${type} 🏡*`, { parse_mode: 'Markdown' });
-    await ctx.reply(
-      'Aap kab tak property kharidna/rent karna chahte hain (Timeline)?',
+    await humanReplyWithMarkdown(ctx, `Awesome choice, ${type}! 🏢 Aarna Estates is range me sabse solid configurations curate karta hai.`);
+    await humanReply(
+      ctx,
+      'Aap is deal ko kab tak close karna chahte hain (Timeline)?',
       Markup.inlineKeyboard([
         [
-          Markup.button.callback('Immediate (Under 1 Month) 🔥', 'time_IMMEDIATE'),
+          Markup.button.callback('Urgent (Under 1 Month) 🔥', 'time_IMMEDIATE'),
           Markup.button.callback('1 to 3 Months ⏱️', 'time_ONE_MONTH'),
         ],
         [
-          Markup.button.callback('Just Researching 🔍', 'time_RESEARCHING'),
+          Markup.button.callback('Abhi sirf check kar rha hoon 🔍', 'time_RESEARCHING'),
         ],
       ])
     );
@@ -328,14 +365,9 @@ export function setupBot(bot: Telegraf<any>) {
     session.timeline = timeline;
     session.step = 'WIZARD_NAME';
 
-    let timeText = '';
-    if (timeline === 'IMMEDIATE') timeText = 'Immediate (Under 1 Month) 🔥';
-    else if (timeline === 'ONE_MONTH') timeText = '1 to 3 Months ⏱️';
-    else timeText = 'Just Researching 🔍';
-
     await ctx.answerCbQuery();
-    await ctx.reply(`👉 *Selected Timeline: ${timeText}*`, { parse_mode: 'Markdown' });
-    await ctx.reply('Thank you! Please apna Full Name batayein:');
+    await humanReplyWithMarkdown(ctx, `Main samajh gaya. Bilkul isi planning ke mutabik options shortlist karenge!`);
+    await humanReply(ctx, 'Ab please mujhe apna Full Name batayein taaki main aapse connect kar sakoon:');
   });
 
   // Action: Book Visit Clicked
@@ -347,8 +379,9 @@ export function setupBot(bot: Telegraf<any>) {
     session.step = 'BOOK_VISIT_DATE';
 
     await ctx.answerCbQuery();
-    await ctx.reply(
-      '📅 **Schedule Site Visit** 📅\n\nAap kis din visit karna chahenge?',
+    await humanReply(
+      ctx,
+      '📅 **Schedule Site Visit** 📅\n\nAap kis din property dekhne chalna chahenge? Hamare senior consultant wahan aapse milenge.',
       Markup.inlineKeyboard([
         [
           Markup.button.callback('Tomorrow', 'visit_day_tomorrow'),
@@ -375,10 +408,10 @@ export function setupBot(bot: Telegraf<any>) {
     else if (choice === 'sunday') visitText = 'This Sunday';
     else visitText = 'Custom Date';
 
-    await ctx.reply(`👉 *Selected Visit Day: ${visitText} 📅*`, { parse_mode: 'Markdown' });
+    await humanReplyWithMarkdown(ctx, `Selected Visit Day: **${visitText}** 📅`);
 
     if (choice === 'custom') {
-      await ctx.reply('Please input date in YYYY-MM-DD format (example: 2026-06-05):');
+      await humanReply(ctx, 'Please dynamic input date is tarah se dijiye YYYY-MM-DD (Jaise: 2026-06-05):');
       return;
     }
 
@@ -441,8 +474,9 @@ export function setupBot(bot: Telegraf<any>) {
     if (session.step === 'WIZARD_NAME') {
       session.name = text;
       session.step = 'WIZARD_PHONE';
-      await ctx.reply(
-        `Got it, ${text}. Please share your phone number. You can type it directly or share your contact info:`,
+      await humanReply(
+        ctx,
+        `Got it, ${text}! 👍 Bas ek aakhri cheez, please apna contact number share karein taaki main coordinate kar saku.\n\nAap niche diye button se apna Contact card send kar sakte hain, ya seedhe type kar dijiye:`,
         Markup.keyboard([
           [Markup.button.contactRequest('Share Contact Card 📱')],
         ]).oneTime().resize()
@@ -597,7 +631,7 @@ async function sendPropertyCard(ctx: any, prop: any) {
  */
 async function finalizeLead(ctx: any, session: UserSession, bot: Telegraf<any>) {
   // Remove share contact keyboard
-  await ctx.reply('Processing your profile...', Markup.removeKeyboard());
+  await ctx.reply('Safar shuru karte hain... Details note kar rha hoon.', Markup.removeKeyboard());
 
   const score = calculateLeadScore(session);
 
@@ -632,7 +666,6 @@ async function finalizeLead(ctx: any, session: UserSession, bot: Telegraf<any>) 
     });
   } catch (err) {
     console.error('[DB Error] Failed to save lead:', err);
-    // Create mock lead object for testing compatibility
     lead = {
       name: session.name,
       phone: session.phone,
@@ -644,13 +677,13 @@ async function finalizeLead(ctx: any, session: UserSession, bot: Telegraf<any>) 
     };
   }
 
-  const userAlert = `🎉 **Profile Registration Successful!** 🎉\n\n` +
-    `Aapki real estate preferences register ho gayi hain:\n` +
+  const userAlert = `Registration successfully ho gaya hai! 🎉\n\n` +
+    `Maine aapki primary search preferences save kar li hain:\n` +
     `- **Name**: ${session.name}\n` +
     `- **Phone**: ${session.phone}\n\n` +
-    `Hum matching listings fetch kar rahe hain...`;
+    `Ek second rukiye, main hamare exclusive systems se best properties match karke aapko share karta hoon...`;
 
-  await ctx.replyWithMarkdown(userAlert);
+  await humanReplyWithMarkdown(ctx, userAlert);
 
   // Trigger agent alert if it's a HOT lead
   if (score >= 70) {
@@ -665,15 +698,15 @@ async function finalizeLead(ctx: any, session: UserSession, bot: Telegraf<any>) 
   });
 
   if (matches.length > 0) {
-    await ctx.reply('🔍 **Hamari AI Recommended Properties:**');
+    await humanReply(ctx, '🔍 Hamare experts ne in matches ko aapke liye shortlist kiya hai:');
     for (const prop of matches) {
       await sendPropertyCard(ctx, prop);
     }
   } else {
-    // If no exact match, show a general greeting
-    await ctx.reply(
-      `Shukriya! Humne aapke preferences save kar liye hain. ` +
-      `Hamara sales agent aapse jaldi contact karega aur best matches share karega.`
+    await humanReply(
+      ctx,
+      `Awesome! Maine aapke parameters register kar liye hain. Wese hamare paas Patna/Delhi me offline listings kaafi badhiya aati rehti hain. ` +
+      `Hamare executive aapse call par connect karke personalized sheets share kar denge! 😊`
     );
   }
 
@@ -740,11 +773,12 @@ async function saveVisitAndConfirm(ctx: any, session: UserSession, visitDate: Da
     day: 'numeric'
   });
 
-  await ctx.replyWithMarkdown(
-    `✅ **Site Visit Scheduled!** ✅\n\n` +
+  await humanReplyWithMarkdown(
+    ctx,
+    `Perfect! Aapki Site Visit confirm ho gayi hai! 🎉\n\n` +
     `🏢 **Property**: ${visit.property?.title}\n` +
     `📅 **Date**: ${formattedDate}\n\n` +
-    `Humne aapki site visit book kar li hai. Hamara property consultant aapko directions aur guidelines ke liye call karega. Thank you!`
+    `Maine hamare senior executive ke pass details pass kar di hain. Wo aapse directions aur coordinates share karne ke liye call karenge. Thank you! 😊`
   );
 
   // Notify Agents about the scheduled visit
